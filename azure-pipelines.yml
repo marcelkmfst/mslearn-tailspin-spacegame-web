@@ -28,7 +28,7 @@ steps:
   inputs:
     verbose: false
 
-- script: './node_modules/.bin/node-sass $(wwwRootDir) --output Tailspin.SpaceGame.Web/wwroot'
+- script: './node_modules/.bin/node-sass $(wwwRootDir) --output $(wwwRootDir)'
   displayName: 'Comppile Saas assets'
 
 - task: gulp@1
