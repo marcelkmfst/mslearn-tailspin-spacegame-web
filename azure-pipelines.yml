@@ -82,7 +82,7 @@ stages:
       displayName: 'publish Artifact: drop'
       condition: succeeded()
       
-- stage: 'Deploy to ASE'
+- stage: 'Deployment'
   displayName: 'deploys the .net package to AppService'
   dependsOn: 'Build'
   jobs:
