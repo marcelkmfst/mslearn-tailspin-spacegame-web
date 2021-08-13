@@ -9,6 +9,8 @@ trigger:
 
 variables:
   buildConfiguration: 'Release'
+  webRepository: 'web'
+  tag: '$(Build.BuildId)'
      
 
 stages:
@@ -18,92 +20,32 @@ stages:
   - job: 'Build'
     pool:
       vmImage: 'ubuntu-20.04'
-      demands:
-        - npm
-
-    variables:
-        buildConfiguration: 'Release'
-        wwwRootDir: 'Tailspin.SpaceGame.Web/wwwroot'
-        dotnetSdkVersion: '5.x'
-
     steps:
-    - task: UseDotNet@2
-      displayName: 'Use .NET SDK $(dot netSdkVersion)'
+    - task: Docker@2
+      displayName: 'build and publish the container image'
       inputs:
-        packageType: sdk
-        version: '$(dotnetSdkVersion)'
+        command: buildAndPush
+        buildContext: $(Build.Repository.LocalPath)
+        repository: $(webRepository)
+        dockerfile: $(Build.SourcesDirectory)/Tailspin.Spacegame.Web/Dockerfile'
+        containerRegistry: 'acr'
+        tags: |
+          $(tag)
 
-    - task: Npm@1
-      displayName: 'Run npm install'
-      inputs:
-        verbose: false
-
-    - script: './node_modules/.bin/node-sass $(wwwRootDir) --output $(wwwRootDir)'
-      displayName: 'Comppile Saas assets'
-
-    - task: gulp@1
-      displayName: 'run gulp tasks'
-
-    - script: 'echo "$(Build.DefinitionName), $(Build.BuildId), $(Build.BuildNumber)" > buildinfo.txt'
-      displayName:  'Write Build infos to file'
-      workingDirectory: $(wwwRootDir)
-
-    - task: DotNetCoreCLI@2 
-      displayName: 'Restore project dependencies'
-      inputs:
-        command: 'restore'
-        projects: '**/*.csproj'
-
-    - task: DotNetCoreCLI@2 
-      displayName: 'Build the project - Release $(Build.BuildId)'
-      inputs:
-          command: 'build'
-          arguments: '--no-restore --configuration Release'
-          projects: '**/*.csproj'
-
-    - task: DotNetCoreCLI@2
-      displayName: 'Publish the project Release $(Build.BuildNumber)'
-      inputs: 
-        command: 'publish'
-        projects: '**/*.csproj'
-        publishWebProjects: false
-        arguments: '--no-build --configuration Release --output $(Build.ArtifactStagingDirectory/Release'
-        zipAfterPublish: true
-
-    - template: templates/build.yaml
-      parameters:
-        buildConfiguration: 'Debug'
-
-    - template: templates/build.yaml 
-      parameters:
-        buildConfiguration: 'Release'
-
-    - task: PublishBuildArtifacts@1
-      displayName: 'publish Artifact: drop'
-      condition: succeeded()
-      
 - stage: 'Deployment'
-  displayName: 'deploys the .net package to AppService'
+  displayName: 'deploys the container to app services'
   dependsOn: 'Build'
   jobs:
-  - deployment: Deploy
+  - job: 'Deploy'
+    displayName: 'Depploy job'
     pool:
       vmImage: 'ubuntu-20.04'
-    environment: 'DEV-environment'
     variables:
-    - group: Release-variables
-    strategy:
-      runOnce:
-        deploy:
-          steps:
-          - download: current
-            artifact: drop
-          - task: AzureWebApp@1
-            displayName: 'Azure App Service deployment'
-            inputs:
-              appType: webAppLinux
-              azureSubscription: "test123"
-              appName: '$(WebAppName)'
-              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
-
-
+    - group: Release-docker
+    steps:
+    - task: AzureWebAppContainer@1
+      inputs:
+          appName: $(WebAppname) 
+          azureSubscription: "test123"
+          imageName: $(RegistryName/$(webRepository):$(build.buildId)
+    
