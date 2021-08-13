@@ -18,7 +18,7 @@ variables:
 
 steps:
 - task: UseDotNet@2
-  displayName: 'Use .NET SDK $(dotnetSdkVersion)'
+  displayName: 'Use .NET SDK $(dot netSdkVersion)'
   inputs:
     packageType: sdk
     version: '$(dotnetSdkVersion)'
@@ -59,6 +59,14 @@ steps:
     publishWebProjects: false
     arguments: '--no-build --configuration Release --output $(Build.ArtifactStagingDirectory/Release'
     zipAfterPublish: true
+
+- template: templates/build.yaml
+  parameters:
+    buildConfiguration: 'Debug'
+
+- template: templates/build.yml 
+  parameters:
+    buildConfiguration: 'Release'
 
 - task: PublishBuildArtifacts@1
   displayName: 'publish Artifact: drop'
