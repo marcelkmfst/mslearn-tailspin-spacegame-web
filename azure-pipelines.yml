@@ -15,11 +15,11 @@ stages:
 - stage: 'Build'
   displayName: 'build the webapp'
   jobs:
-    - job: 'Build'
-  pool:
-    vmImage: 'ubuntu-20.04'
-    demands:
-      - npm
+  - job: 'Build'
+    pool:
+      vmImage: 'ubuntu-20.04'
+      demands:
+        - npm
 
     variables:
         buildConfiguration: 'Release'
