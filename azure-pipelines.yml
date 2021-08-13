@@ -104,6 +104,6 @@ stages:
               appType: webAppLinux
               azureSubscription: "test123"
               appName: '$(WebAppName)'
-              package: '$(Pipeline.Workspace)/drop/$buildConfiguration)/*.zip'
+              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
 
 
