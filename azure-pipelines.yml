@@ -16,7 +16,6 @@ stages:
   displayName: 'build the webapp'
   jobs:
     - job: 'Build'
-  displayName: 'build job'
   pool:
     vmImage: 'ubuntu-20.04'
     demands:
